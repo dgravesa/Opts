@@ -239,7 +239,7 @@ void OptHandler::printUsage(const std::string &usage_str) const
 {
 	// print usage line
 	if (!usage_str.empty())
-		std::cout << usage_str << "\n\n";
+		std::cout << usage_str << "\n";
 
 	if (opts == NULL) return;
 
@@ -271,7 +271,7 @@ void OptHandler::printUsage(const std::string &usage_str) const
 	//fill_width += 10;
 
 	// print command line options
-	std::cout << "command line options:\n";
+	std::cout << "\ncommand line options:\n";
 	for (int i = 0; opts[i].short_opt != 0; ++i)
 	{
 		std::string opt_name = "  ";
