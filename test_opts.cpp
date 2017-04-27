@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 		switch (opt)
 		{
 			case 'h':
-				opt_handler.printUsage("usage: test_opts [-s <sigmas>] <inputfile>");
+				opt_handler.printUsage("usage: test_opts [-s SIGMAS] [file ...]");
 				break;
 
 			case 'v':

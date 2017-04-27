@@ -247,44 +247,79 @@ void OptHandler::printUsage(const std::string &usage_str) const
 	size_t fill_width = 0;
 	for (int i = 0; opts[i].short_opt != 0; ++i)
 	{
-		size_t this_fill = 0;
-		if (opts[i].long_opt != NULL)
-			this_fill = strlen(opts[i].long_opt);
+		size_t this_fill = 4;
 
-		if (opts[i].type != NO_ARG)
-			this_fill += 8;
+		if (std::isalnum(opts[i].short_opt))
+		{
+			this_fill += 2;
+			if (opts[i].type != NO_ARG)
+				this_fill += 7;
+			if (opts[i].long_opt != NULL)
+				this_fill += 2;
+		}
+
+		if (opts[i].long_opt != NULL)
+		{
+			this_fill += 2 + strlen(opts[i].long_opt);
+
+			if (opts[i].type != NO_ARG)
+				this_fill += 8;
+		}
 
 		fill_width = std::max(fill_width, this_fill);
 	}
-	fill_width += 10;
+	//fill_width += 10;
 
 	// print command line options
 	std::cout << "command line options:\n";
 	for (int i = 0; opts[i].short_opt != 0; ++i)
 	{
-		std::string opt_name = "  -";
-		opt_name += opts[i].short_opt;
+		std::string opt_name = "  ";
 
-		if (opts[i].long_opt != NULL)
+		// add short option to name string
+		if (std::isalnum(opts[i].short_opt))
 		{
-			opt_name += ", --";
-			opt_name += opts[i].long_opt;
+			opt_name += "-";
+			opt_name += opts[i].short_opt;
+
+			switch (opts[i].type)
+			{
+				case REQUIRED_ARG:
+					opt_name += " VALUE";
+					break;
+
+				case OPTIONAL_ARG:
+					opt_name += "[VALUE]";
+					break;
+
+				default:
+					break;
+			};
+
+			if (opts[i].long_opt != NULL)
+				opt_name += ", ";
 		}
 
-		switch (opts[i].type)
+		// add long option to name string
+		if (opts[i].long_opt != NULL)
 		{
-			case REQUIRED_ARG:
-				opt_name += " <value>";
-				break;
+			opt_name += "--";
+			opt_name += opts[i].long_opt;
 
-			case OPTIONAL_ARG:
-				if (opts[i].long_opt != NULL) opt_name += "[=value]";
-				else opt_name += "[value]";
-				break;
+			switch (opts[i].type)
+			{
+				case REQUIRED_ARG:
+					opt_name += " VALUE";
+					break;
 
-			default:
-				break;
-		};
+				case OPTIONAL_ARG:
+					opt_name += "[=VALUE]";
+					break;
+
+				default:
+					break;
+			};
+		}
 
 		// fill width
 		size_t fill = fill_width - opt_name.size();
