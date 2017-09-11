@@ -14,7 +14,10 @@
 #include <cstring>
 #include <algorithm>
 
-enum OptType { REQUIRED_ARG, OPTIONAL_ARG, NO_ARG };
+//enum OptType { REQUIRED_ARG, OPTIONAL_ARG, NO_ARG };
+#define NO_ARG 1 << 0
+#define REQUIRED_ARG 1 << 1
+#define OPTIONAL_ARG 1 << 2
 
 struct Option
 {
@@ -133,14 +136,14 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 					}
 
 					// unexpected option argument error
-					if (opt_find->second->type == NO_ARG && !opt_arg.empty())
+					if (opt_find->second->type & NO_ARG && !opt_arg.empty())
 					{
 						std::cerr << "error: long option '" << arg_ptr << "' expects no argument\n";
 						arg_index = arg_count;
 						return true;
 					}
 
-					if (opt_find->second->type == REQUIRED_ARG && opt_arg.empty())
+					if (opt_find->second->type & REQUIRED_ARG && opt_arg.empty())
 					{
 						// expected argument error
 						if (++arg_index >= arg_count)
@@ -191,11 +194,11 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 		}
 
 		// set option argument as remainder of argument
-		if (opt_find->second->type != NO_ARG)
+		if (!(opt_find->second->type & NO_ARG))
 			opt_arg = arg_ptr + 1;
 
 		// set option argument as next argument
-		if (opt_find->second->type == REQUIRED_ARG && opt_arg.empty())
+		if (opt_find->second->type & REQUIRED_ARG && opt_arg.empty())
 		{
 			// expected argument error
 			if (++arg_index >= arg_count)
@@ -210,7 +213,7 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 		++arg_ptr;
 
 		// move to next argument
-		if (opt_find->second->type != NO_ARG || *arg_ptr == 0)
+		if (!(opt_find->second->type & NO_ARG) || *arg_ptr == 0)
 		{
 			++arg_index;
 			new_arg = true;
@@ -262,7 +265,7 @@ void OptHandler::printUsage(const std::string &usage_str) const
 		{
 			this_fill += 2 + strlen(opts[i].long_opt);
 
-			if (opts[i].type != NO_ARG)
+			if (!(opts[i].type & NO_ARG))
 				this_fill += 8;
 		}
 
@@ -282,7 +285,7 @@ void OptHandler::printUsage(const std::string &usage_str) const
 			opt_name += "-";
 			opt_name += opts[i].short_opt;
 
-			switch (opts[i].type)
+			switch (opts[i].type & 7)
 			{
 				case REQUIRED_ARG:
 					opt_name += " VALUE";
@@ -306,7 +309,7 @@ void OptHandler::printUsage(const std::string &usage_str) const
 			opt_name += "--";
 			opt_name += opts[i].long_opt;
 
-			switch (opts[i].type)
+			switch (opts[i].type & 7)
 			{
 				case REQUIRED_ARG:
 					opt_name += " VALUE";
