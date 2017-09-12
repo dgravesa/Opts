@@ -7,7 +7,7 @@
 
 static Option options[] =  
 {
-	{ "help", 'h', NO_ARG, NULL },
+	{ "help", 1, NO_ARG | ULINE_OPT, "print this usage dialog" },
 	{ "verbose", 'v', NO_ARG, NULL },
 	{ "sigmas", 's', REQUIRED_ARG | REQUIRED_OPT, "set bandwidths for computation" },
 	{ "shuffle", 'S', OPTIONAL_ARG | ULINE_OPT, "perform data shuffling prior to computation with optional seed argument" },
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 	{
 		switch (opt)
 		{
-			case 'h':
+			case 1:
 				//opt_handler.printUsage("usage: test_opts [-s SIGMAS] [file ...]");
 				opt_handler.printUsage();
 				break;
