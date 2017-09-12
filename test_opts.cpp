@@ -9,13 +9,13 @@ static Option options[] =
 {
 	{ "help", 'h', NO_ARG, NULL },
 	{ "verbose", 'v', NO_ARG, NULL },
-	{ "sigmas", 's', REQUIRED_ARG, "set bandwidths for computation" },
-	{ "shuffle", 'S', OPTIONAL_ARG, "perform data shuffling prior to computation with optional seed argument" },
-	{ "output", 'o', REQUIRED_ARG, "set output directory" },
-	{ NULL, 'x', NO_ARG, "this flag does not have a long option" },
-	{ "what-an-egregiously-long-option-we-have-here", 'w', NO_ARG, "this flag pushes the limits of readability" },
-	{ NULL, 'R', REQUIRED_ARG, "this flag does not have a long option but requires an argument" },
-	{ NULL, 'O', OPTIONAL_ARG, "this flag does not have a long option but has an optional argument" },
+	{ "sigmas", 's', REQUIRED_ARG | REQUIRED_OPT, "set bandwidths for computation" },
+	{ "shuffle", 'S', OPTIONAL_ARG | ULINE_OPT, "perform data shuffling prior to computation with optional seed argument" },
+	{ "output", 'o', REQUIRED_ARG | REQUIRED_OPT, "set output directory" },
+	{ NULL, 'x', NO_ARG | ULINE_OPT, "this flag does not have a long option" },
+	{ "what-an-egregiously-long-option-we-have-here", 'w', NO_ARG | ULINE_OPT, "this flag pushes the limits of readability" },
+	{ NULL, 'R', REQUIRED_ARG | ULINE_OPT, "this flag does not have a long option but requires an argument" },
+	{ NULL, 'O', OPTIONAL_ARG | ULINE_OPT, "this flag does not have a long option but has an optional argument" },
 	{ 0, 0, 0, 0 }
 };
 
@@ -32,7 +32,8 @@ int main(int argc, char **argv)
 		switch (opt)
 		{
 			case 'h':
-				opt_handler.printUsage("usage: test_opts [-s SIGMAS] [file ...]");
+				//opt_handler.printUsage("usage: test_opts [-s SIGMAS] [file ...]");
+				opt_handler.printUsage();
 				break;
 
 			case 'v':

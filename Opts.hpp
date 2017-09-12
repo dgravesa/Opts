@@ -16,8 +16,10 @@
 
 //enum OptType { REQUIRED_ARG, OPTIONAL_ARG, NO_ARG };
 #define NO_ARG 1 << 0
-#define REQUIRED_ARG 1 << 1
-#define OPTIONAL_ARG 1 << 2
+#define OPTIONAL_ARG 1 << 1
+#define REQUIRED_ARG 1 << 2
+#define REQUIRED_OPT 1 << 3
+#define ULINE_OPT 1 << 4
 
 struct Option
 {
@@ -51,6 +53,10 @@ private:
 	std::unordered_map<std::string, const Option *> long_opts;
 	std::list<std::string> non_opt_args;
 
+	std::unordered_map<char, const Option *> req_opts;
+	std::list<int> uline_opts;
+	std::list<char> uline_flags;
+
 	int arg_index, arg_count;
 	char **args, *arg_ptr;
 	bool new_arg;
@@ -82,6 +88,19 @@ void OptHandler::init(const Option *options, int argc, char **argv)
 
 			if (opts[i].long_opt != NULL)
 				long_opts.insert(std::pair<std::string, const Option *>(opts[i].long_opt, opts + i));
+
+			if (opts[i].type & REQUIRED_OPT)
+			{
+				req_opts.insert(std::pair<char, const Option *>(opts[i].short_opt, opts + i));
+				uline_opts.push_back(i);
+			}
+
+			else if (opts[i].type & ULINE_OPT)
+			{
+				if (opts[i].type & REQUIRED_ARG || !std::isalnum(opts[i].short_opt))
+					uline_opts.push_back(i);
+				else uline_flags.push_back(opts[i].short_opt);
+			}
 		}
 	}
 }
@@ -92,7 +111,25 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 	opt_arg = "";
 
 	if (arg_index >= arg_count)
-		return false;
+	{
+		//return false;
+		bool req_err = false;
+		if (!req_opts.empty())
+		{
+			std::cerr << "error: unspecified options:";
+			std::unordered_map<char, const Option *>::iterator req_opt;
+			for (req_opt = req_opts.begin(); req_opt != req_opts.end(); ++req_opt)
+			{
+				if (std::isalnum(req_opt->second->short_opt))
+					std::cerr << " '-" << req_opt->second->short_opt << "'";
+				else
+					std::cerr << " '--" << req_opt->second->long_opt << "'";
+			}
+			std::cerr << "\n";
+		}
+
+		return req_err;
+	}
 
 	if (new_arg)
 	{
@@ -109,7 +146,8 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 					while (++arg_index < arg_count)
 						non_opt_args.push_back(args[arg_index]);
 
-					return false;
+					//return false;
+					return getOpt(opt_code, opt_arg);
 				}
 
 				// new long option argument
@@ -155,6 +193,10 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 						// set option argument as next argument
 						opt_arg = args[arg_index];
 					}
+
+					// remove required option from map
+					if (opt_find->second->type & REQUIRED_OPT)
+						req_opts.erase(opt_find->second->short_opt);
 
 					opt_code = opt_find->second->short_opt;
 
@@ -243,6 +285,64 @@ void OptHandler::printUsage(const std::string &usage_str) const
 	// print usage line
 	if (!usage_str.empty())
 		std::cout << usage_str << "\n";
+
+	// print usage line guess
+	else
+	{
+		// print executable name
+		std::cout << "usage: " << args[0];
+
+		// print flags
+		if (!uline_flags.empty())
+		{
+			std::cout << " [-";
+			for (std::list<char>::const_iterator uline_flag = uline_flags.begin(); uline_flag != uline_flags.end(); ++uline_flag)
+				std::cout << *uline_flag;
+			std::cout << "]";
+		}
+
+		// print options
+		if (!uline_opts.empty())
+		{
+			for (std::list<int>::const_iterator ii = uline_opts.begin(); ii != uline_opts.end(); ++ii)
+			{
+				int i = *ii;
+
+				// print front bracketing
+				if (opts[i].type & REQUIRED_OPT)
+					std::cout << " ";
+				else std::cout << " [";
+
+				// print option name
+				if (std::isalnum(opts[i].short_opt))
+					std::cout << "-" << opts[i].short_opt;
+				else std::cout << "--" << opts[i].long_opt;
+
+				if (opts[i].type & OPTIONAL_ARG)
+					std::cout << "=VALUE";
+
+				switch (opts[i].type & 7)
+				{
+					case OPTIONAL_ARG:
+						std::cout << "=VALUE";
+						break;
+
+					case REQUIRED_ARG:
+						std::cout << " VALUE";
+						break;
+
+					default:
+						break;
+				};
+
+				// print back bracketing
+				if (!(opts[i].type & REQUIRED_OPT))
+					std::cout << "]";
+			}
+		}
+
+		std::cout << "\n";
+	}
 
 	if (opts == NULL) return;
 
