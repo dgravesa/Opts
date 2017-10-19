@@ -116,6 +116,7 @@ bool OptHandler::getOpt(char &opt_code, std::string &opt_arg)
 		bool req_err = false;
 		if (!req_opts.empty())
 		{
+			req_err = true;
 			std::cerr << "error: unspecified options:";
 			std::unordered_map<char, const Option *>::iterator req_opt;
 			for (req_opt = req_opts.begin(); req_opt != req_opts.end(); ++req_opt)
